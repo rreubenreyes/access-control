@@ -3,11 +3,9 @@ interface StaticResolutionStrategy {
     (role: Role): boolean;
 }
 
-type DynamicResolverOptions = Record<string, any>
-
 interface DynamicResolutionStrategy {
     requireTransactionResult: boolean;
-    resolve: (role: Role, options: DynamicResolverOptions) => boolean;
+    resolve: (role: Role, options: Record<string, any>) => boolean;
 }
 
 type IntrospectedAuthorizationHeader = {
@@ -51,7 +49,7 @@ export class Principal {
     /**
      * Use a dynamic resolver from the required role to authorize this principal.
      */
-    public resolve(role: Role, strategy: string, options: DynamicResolverOptions = {}): boolean {
+    public resolve(role: Role, strategy: string, options: Record<string, any> = {}): boolean {
         return role.resolvers[strategy].resolve(role, options);
     }
 }

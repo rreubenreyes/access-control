@@ -29,7 +29,7 @@ export class Resource {
         this.permissions = permissions;
     }
 
-    public transact: any = (transaction: Transaction): any => {
+    public transact = (transaction: Transaction): any => {
         const grantAccess = transaction.onAccessGranted;
         const denyAccess = transaction.onAccessDenied; 
 
