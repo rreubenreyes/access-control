@@ -1,0 +1,43 @@
+{
+  "name": "access-control",
+  "version": "1.0.0",
+  "description": "Human API access control layer",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist",
+    "test": "jest --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rreubenreyes/access-control.git"
+  },
+  "author": "Reuben Reyes <reuben@humanapi.co>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rreubenreyes/access-control/issues"
+  },
+  "homepage": "https://github.com/rreubenreyes/access-control#readme",
+  "devDependencies": {
+    "eslint": "^6.0.0",
+    "husky": "^4.2.3",
+    "lint-staged": "^10.0.8",
+    "tslint": "^6.0.0",
+    "typescript": "^3.8.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": "eslint --fix"
+  },
+  "dependencies": {
+    "@types/bunyan": "^1.8.6",
+    "@typescript-eslint/eslint-plugin": "^2.21.0",
+    "@typescript-eslint/parser": "^2.21.0",
+    "bunyan": "^1.8.12",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3"
+  }
+}
