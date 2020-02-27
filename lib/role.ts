@@ -1,26 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-interface StaticResolutionStrategy {
-    (role: Role): boolean;
+interface StaticRoleResolver {
+    ({ role }: { role: Role }): boolean;
 }
 
-interface DynamicResolutionStrategy {
-    requireTransactionResult: boolean;
-    resolve: (role: Role, options: Record<string, any>) => boolean;
+interface DynamicRoleResolver {
+    ({ role, ...options }: { role: Role } & Record<string, any>): boolean;
 }
 
-type IntrospectedAuthorizationHeader = {
+interface RoleOptions {
+    name: string;
+    groups: string[];
+    resolvers: Record<string, DynamicRoleResolver>;
+}
+
+export class Role {
+    public name: string;
+    public groups: string[];
+
+    private resolvers: Record<string, DynamicRoleResolver>;
+
+    constructor({ name, groups, resolvers }: RoleOptions) {
+        this.name = name;
+        this.groups = groups;
+        this.resolvers = resolvers;
+    }
+    
+    public getResolver({ name }: { name: string }): DynamicRoleResolver {
+        const definedResolver: DynamicRoleResolver | undefined = this.resolvers[name];
+
+        return definedResolver || ((): boolean => false);
+    }
+}
+
+interface IntrospectedAuthorizationHeader {
     humanId: string;
     userId: string;
     clientId: string;
     groups: string[];
-}
-
-export interface Role {
-    name: string;
-    groups: string[];
-    resolvers: {
-        [index: string]: DynamicResolutionStrategy;
-    };
 }
 
 export class Principal {
@@ -34,7 +50,7 @@ export class Principal {
      * Verify that this principal's groups contains at least one group from the
      * required role.
      */
-    public is: StaticResolutionStrategy = (role: Role) => {
+    public is: StaticRoleResolver = ({ role }) => {
         return this.authInfo.groups.some(group => role.groups.includes(group));
     }
 
@@ -42,15 +58,15 @@ export class Principal {
      * Verify that this principal's groups contains exactly the specified group
      * from the required role.
      */
-    public isExactly: StaticResolutionStrategy = (role: Role) => {
+    public isExactly: StaticRoleResolver = ({ role }) => {
         return this.authInfo.groups.every(group => role.groups.includes(group));
     }
 
     /**
      * Use a dynamic resolver from the required role to authorize this principal.
      */
-    public resolve(role: Role, strategy: string, options: Record<string, any> = {}): boolean {
-        return role.resolvers[strategy].resolve(role, options);
+    public authorize(role: Role, resolver: string, options: Record<string, any> = {}): boolean {
+        return role.getResolver({ name: resolver })({ role, ...options });
     }
 }
 
