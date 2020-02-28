@@ -65,7 +65,7 @@ export class Principal {
     /**
      * Use a dynamic resolver from the required role to authorize this principal.
      */
-    public authorize(role: Role, resolver: string, options: Record<string, any> = {}): boolean {
+    public resolve(role: Role, resolver: string, options: Record<string, any> = {}): boolean {
         return role.getResolver({ name: resolver })({ role, ...options });
     }
 }

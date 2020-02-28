@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Principal } from './role';
 import type { TransactionPlan } from './transaction';
+
+export interface ScopeFilter<T> {
+    ({ principal, resource }: { principal: Principal; resource: T }): Partial<T>;
+}
 
 export class Resource {
     public name: string;

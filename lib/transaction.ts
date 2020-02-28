@@ -21,14 +21,15 @@ export interface TransactionPlan {
     lazy: boolean;
 }
 
-interface PromiseExecutor {
-    (resolve: Function, reject: Function): unknown;
-}
-
 interface TransactionOptions {
     principal: Principal;
     plan: TransactionPlan;
 }
+
+interface PromiseExecutor {
+    (resolve: (value?: unknown) => void, reject: (reason?: any) => void): unknown;
+}
+
 
 export class Transaction {
     constructor(executor: PromiseExecutor, options: TransactionOptions) {
@@ -36,8 +37,8 @@ export class Transaction {
             principal, 
             plan: { 
                 authorize, 
-                lazy 
-            } 
+                lazy, 
+            },
         } = options;
 
         /* If this transaction plan isn't lazy, then authorize right away */
