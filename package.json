@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/rreubenreyes/access-control#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.149",
     "eslint": "^6.0.0",
     "husky": "^4.2.3",
     "lint-staged": "^10.0.8",
@@ -38,6 +39,7 @@
     "@typescript-eslint/parser": "^2.21.0",
     "bunyan": "^1.8.12",
     "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-jsx-a11y": "^6.2.3"
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "lodash": "^4.17.15"
   }
 }

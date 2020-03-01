@@ -1,24 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Principal } from './role';
-import type { TransactionPlan } from './transaction';
+import { Principal } from './identity';
+import AccessControlFramework from './framework';
 
-export interface ScopeFilter<T> {
-    ({ principal, resource }: { principal: Principal; resource: T }): Partial<T>;
+interface StaticAuthorizationStrategy {
+    ({ principal }: { principal: Principal }): boolean;
 }
 
 export class Resource {
-    public name: string;
-    private transactions: Record<string, TransactionPlan>;
+    private _framework: AccessControlFramework;
+    private _name: string;
+    private _preflightAuthorizationStrategy: StaticAuthorizationStrategy;
 
-    constructor({ name, transactions }: { name: string; transactions: Record<string, TransactionPlan> }) {
-        this.name = name;
-        this.transactions = transactions;
+    constructor({ framework, name, preflightAuthorizationStrategy }: { 
+        framework: AccessControlFramework; 
+        name: string;
+        preflightAuthorizationStrategy: StaticAuthorizationStrategy;
+    })  {
+        this._name = name;
+        this._framework = framework;
+        this._preflightAuthorizationStrategy = preflightAuthorizationStrategy;
+
+        this._framework.registerResource(this);
     }
 
-    public getTransactionPlan({ name }: { name: string }): TransactionPlan | null {
-        if (!this.transactions[name]) return null;
+    public get name(): string {
+        return this._name;
+    }
 
-        return this.transactions[name];
+    public authorizePreflight({ principal }: { principal: Principal }): boolean {
+        return this._preflightAuthorizationStrategy({ principal });
     }
 }
 

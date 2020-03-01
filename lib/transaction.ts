@@ -1,69 +1,57 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Principal } from './role';
+import { Principal } from './identity';
+import { Resource } from './resource';
 
 export class RejectedTransactionError extends Error {
-    constructor() {
-        const message = 'RejectedTransactionError:' 
-            + `User is not allowed to perform this transaction`;
+    constructor(message: string) {
+        const msg = 'RejectedTransactionError:' 
+            + (message || `User is not allowed to perform this transaction`);
 
-        super(message);
+        super(msg);
 
         Error.captureStackTrace(this, RejectedTransactionError);
     }
 }
 
 export interface TransactionPlan {
-    authorize: ({ principal, resource }: {
-        principal: Principal;
-        resource?: any;
-    }) => boolean;
-
-    lazy: boolean;
-}
-
-interface TransactionOptions {
     principal: Principal;
-    plan: TransactionPlan;
+    resource: Resource;
 }
 
-interface PromiseExecutor {
-    (resolve: (value?: unknown) => void, reject: (reason?: any) => void): unknown;
+interface TransactionScope {
+    foo: string;
 }
 
+interface TransactionExecutor {
+    (
+        resolve: (value?: unknown) => void, 
+        reject: (reason?: any) => void,
+        scope: TransactionScope
+    ): unknown;
+}
 
 export class Transaction {
-    constructor(executor: PromiseExecutor, options: TransactionOptions) {
-        const { 
-            principal, 
-            plan: { 
-                authorize, 
-                lazy, 
-            },
-        } = options;
+    constructor(plan: TransactionPlan, executor: TransactionExecutor) {
+        const { principal, resource } = plan;
 
-        /* If this transaction plan isn't lazy, then authorize right away */
-        if (!lazy) {
-            const isAllowed = authorize({ principal });
-
-            if (!isAllowed) {
-                return Promise.reject(new RejectedTransactionError());
-            }
+        if (!(principal instanceof Principal)) {
+            throw new RejectedTransactionError('principal is not an instance of Principal');
         }
 
-        /* Execute the main promise body, then authorize the actor based on the result */
-        const promise: Promise<unknown> = new Promise(executor)
-            .then(resource => {
-                if (lazy) {
-                    const isAllowed = authorize({ principal, resource });
+        if (!(resource instanceof Resource)) {
+            throw new RejectedTransactionError('resource is not an instance of Resource');
+        }
 
-                    if (!isAllowed) {
-                        return Promise.reject(new RejectedTransactionError());
-                    }
-                }
+        const isAuthorizedPreflight = resource.authorizePreflight({ principal });
 
-                return resource;
-            })
+        if (!isAuthorizedPreflight) {
+            throw new RejectedTransactionError(
+                `Transaction on resource ${resource.name} was rejected pre-flight.`
+            );
+        }
 
-        return promise;
+        const transactionScope = { foo: 'bar' };
+
+        return new Promise((resolve, reject) => executor(resolve, reject, transactionScope))
     }
 }
