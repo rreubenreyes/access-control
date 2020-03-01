@@ -2,8 +2,10 @@
 import { Principal } from './identity';
 import AccessControlFramework from './framework';
 
+export type AuthorizedScope = Record<string, any>;
+
 interface StaticAuthorizationStrategy {
-    ({ principal }: { principal: Principal }): boolean;
+    ({ principal }: { principal: Principal }): AuthorizedScope | null;
 }
 
 export class Resource {
@@ -27,7 +29,7 @@ export class Resource {
         return this._name;
     }
 
-    public authorizePreflight({ principal }: { principal: Principal }): boolean {
+    public authorizePreflight({ principal }: { principal: Principal }): AuthorizedScope | null {
         return this._preflightAuthorizationStrategy({ principal });
     }
 }

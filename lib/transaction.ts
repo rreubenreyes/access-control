@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Principal } from './identity';
 import { Resource } from './resource';
+import type { AuthorizedScope } from './resource';
 
 export class RejectedTransactionError extends Error {
     constructor(message: string) {
@@ -18,15 +19,11 @@ export interface TransactionPlan {
     resource: Resource;
 }
 
-interface TransactionScope {
-    foo: string;
-}
-
 interface TransactionExecutor {
     (
         resolve: (value?: unknown) => void, 
         reject: (reason?: any) => void,
-        scope: TransactionScope
+        scope: AuthorizedScope
     ): unknown;
 }
 
@@ -42,16 +39,14 @@ export class Transaction {
             throw new RejectedTransactionError('resource is not an instance of Resource');
         }
 
-        const isAuthorizedPreflight = resource.authorizePreflight({ principal });
+        const authorizedScope = resource.authorizePreflight({ principal });
 
-        if (!isAuthorizedPreflight) {
+        if (authorizedScope === null) {
             throw new RejectedTransactionError(
                 `Transaction on resource ${resource.name} was rejected pre-flight.`
             );
         }
 
-        const transactionScope = { foo: 'bar' };
-
-        return new Promise((resolve, reject) => executor(resolve, reject, transactionScope))
+        return new Promise((resolve, reject) => executor(resolve, reject, authorizedScope))
     }
 }

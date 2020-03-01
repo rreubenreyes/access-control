@@ -3,9 +3,7 @@ import isEqual from 'lodash/isEqual';
 
 import AccessControlFramework from './framework';
 
-export interface Identity {
-    traits: any;
-}
+export type Identity = Record<string, any>;
 
 interface StaticRolePredicate {
     ({ role, principal }: { role: Identity; principal: Identity }): boolean;
@@ -33,10 +31,6 @@ abstract class AuthenticatableEntity {
 
         this._framework = framework;
     }
-
-    public get identity(): any {
-        return this._identity;
-    }
 }
 
 export class Role extends AuthenticatableEntity {
@@ -58,6 +52,10 @@ export class Role extends AuthenticatableEntity {
 
     public get name(): string {
         return this._name;
+    }
+
+    public get identity(): any {
+        return this._identity;
     }
 }
 
@@ -81,7 +79,7 @@ export class Principal extends AuthenticatableEntity {
     public is(role: Role): boolean {
         if (!(role instanceof Role)) return false;
 
-        return isEqual(role.identity, this.identity);
+        return isEqual(role.identity, this._identity);
     }
 
     /**
@@ -90,7 +88,7 @@ export class Principal extends AuthenticatableEntity {
     public authenticate(role: Role, assertion: StaticRolePredicate): boolean {
         if (!(role instanceof Role)) return false;
 
-        return assertion({ role: role.identity, principal: this.identity });
+        return assertion({ role: role.identity, principal: this._identity });
     }
 }
 
