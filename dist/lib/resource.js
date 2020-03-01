@@ -1,14 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Resource {
-    constructor({ name, transactions }) {
-        this.name = name;
-        this.transactions = transactions;
+    constructor({ framework, name, preflightAuthorizationStrategy }) {
+        this._name = name;
+        this._framework = framework;
+        this._preflightAuthorizationStrategy = preflightAuthorizationStrategy;
+        this._framework.registerResource(this);
     }
-    getTransactionPlan({ name }) {
-        if (!this.transactions[name])
-            return null;
-        return this.transactions[name];
+    get name() {
+        return this._name;
+    }
+    authorizePreflight({ principal }) {
+        return this._preflightAuthorizationStrategy({ principal });
     }
 }
 exports.Resource = Resource;

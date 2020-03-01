@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Principal } from './identity';
 import { Resource } from './resource';
-import type { AuthorizedScope } from './resource';
+import { AuthorizedScope } from './resource';
 
 export class RejectedTransactionError extends Error {
     constructor(message: string) {
@@ -21,8 +21,8 @@ export interface TransactionPlan {
 
 interface TransactionExecutor {
     (
-        resolve: (value?: unknown) => void, 
-        reject: (reason?: any) => void,
+        resolve: any,
+        reject: any,
         scope: AuthorizedScope
     ): unknown;
 }
