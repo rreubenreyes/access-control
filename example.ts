@@ -1,11 +1,3 @@
-# access-control 🔒
-General-purpose access control layer.
-
-This project is still in the ideation phase.
-
-## Example usage
-
-```ts
 import { Transaction, Restriction } from './lib';
 
 interface MovieGoer {
@@ -82,4 +74,3 @@ movieGoers.forEach(async movieGoer => {
     await watchMovie(movieGoer, movies.twentyOneJumpStreet);
     await watchMovie(movieGoer, movies.frozen);
 });
-```
