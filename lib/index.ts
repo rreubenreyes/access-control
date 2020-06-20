@@ -6,8 +6,8 @@ type PromiseExecutor<T> = (
 export type Scope<A, R> = {
     name: string;
     priority: number;
-    predicate: (actor: A, resource: R) => boolean;
-    projection: (resource: R) => R | Partial<R> | null;
+    predicate: (actor: A, resource: Partial<R>) => boolean;
+    projection: (resource: Partial<R>) => Partial<R> | null;
     allowFurther?: Scope<A, R>[];
 };
 
@@ -37,7 +37,7 @@ export class Transaction<A, R> {
         return this;
     }
 
-    private evaluateScopeWaterfall(resource: R, scopes: Scope<A, R>[]): R | Partial<R> | null {
+    private evaluateScopeWaterfall(resource: Partial<R>, scopes: Scope<A, R>[]): Partial<R> | null {
         const actor = this._actor as A;
         const priorityScopes = [...scopes].sort((a, b) => a.priority - b.priority);
 
@@ -51,7 +51,7 @@ export class Transaction<A, R> {
             return null;
         }
 
-        const scopedResult = matchingScope.projection(resource) as R | Partial<R>;
+        const scopedResult = matchingScope.projection(resource) as Partial<R>;
 
         if (matchingScope.allowFurther) {
             return this.evaluateScopeWaterfall(scopedResult, matchingScope.allowFurther);
@@ -60,7 +60,7 @@ export class Transaction<A, R> {
         return scopedResult;
     }
 
-    async mediate(): Promise<R | Partial<R> | null> {
+    async mediate(): Promise<Partial<R> | null> {
         if (!this._actor) return Promise.reject('Cannot perform transaction without actor');
         if (!this._restriction) return Promise.reject('Cannot perform transaction without restriction');
 
