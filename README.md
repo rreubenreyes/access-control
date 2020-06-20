@@ -82,4 +82,15 @@ movieGoers.forEach(async movieGoer => {
     await watchMovie(movieGoer, movies.twentyOneJumpStreet);
     await watchMovie(movieGoer, movies.frozen);
 });
+
+/*
+    { age: 25, money: 10 } 'Wow, 21 Jump Street was a great movie!'
+    { age: 30, money: 5 } 'Aww man, they didn\'t let me in...'
+    { age: 25, money: 10 } 'Wow, Frozen was a great movie!'
+    { age: 16, money: 10 } 'Wow, Frozen was a great movie!'
+    { age: 30, money: 5 } 'Aww man, they didn\'t let me in...'
+    { age: 16, money: 10 } 'Aww man, they didn\'t let me in...'
+*/
 ```
+
+
