@@ -3,10 +3,19 @@ type PromiseExecutor<T> = (
     reject?: (reason?: unknown) => void
 ) => void;
 
+export type Scope<A, R> = {
+    name: string;
+    priority: number;
+    predicate: (actor: A, resource: R) => boolean;
+    projection: (resource: R) => R | Partial<R> | null;
+    allowFurther?: Scope<A, R>[];
+};
+
 export type Restriction<A, R> = {
     preflight: (actor?: A) => boolean;
     requirements: (actor: A, resource: R) => boolean;
-}
+    allowedScopes?: Scope<A, R>[];
+};
 
 export class Transaction<A, R> {
     private _executor: PromiseExecutor<R>;
@@ -23,11 +32,35 @@ export class Transaction<A, R> {
     }
 
     restriction(txnRestriction: Restriction<A, R>): this {
-        this._restriction = txnRestriction;
+        this._restriction = txnRestriction as Restriction<A, R>;
+
         return this;
     }
 
-    async mediate(): Promise<R> {
+    private evaluateScopeWaterfall(resource: R, scopes: Scope<A, R>[]): R | Partial<R> | null {
+        const actor = this._actor as A;
+        const priorityScopes = [...scopes].sort((a, b) => a.priority - b.priority);
+
+        const matchingScope = priorityScopes.find(scope => scope.predicate(actor, resource));
+
+        if (!matchingScope) {
+            return null;
+        }
+
+        if (!matchingScope.projection(resource)) {
+            return null;
+        }
+
+        const scopedResult = matchingScope.projection(resource) as R | Partial<R>;
+
+        if (matchingScope.allowFurther) {
+            return this.evaluateScopeWaterfall(scopedResult, matchingScope.allowFurther);
+        }
+
+        return scopedResult;
+    }
+
+    async mediate(): Promise<R | Partial<R> | null> {
         if (!this._actor) return Promise.reject('Cannot perform transaction without actor');
         if (!this._restriction) return Promise.reject('Cannot perform transaction without restriction');
 
@@ -45,7 +78,11 @@ export class Transaction<A, R> {
                 const restriction = this._restriction as Restriction<A, R>;
 
                 if (restriction.requirements(actor, result)) {
-                    return result;
+                    if (!restriction.allowedScopes) {
+                        return result;
+                    }
+
+                    return this.evaluateScopeWaterfall(result, restriction.allowedScopes);
                 } 
 
                 return Promise.reject('Actor is unauthorized to perform this transaction');
